@@ -75,4 +75,94 @@ class Dev_Tool_Importer_Admin {
 
 	}
 
+	/**
+	 * Add dashboard page for our goodness
+	 *
+	 * @since    1.0.0
+	 */
+	public function add_dtk_importer_page() {
+
+		add_dashboard_page( 'DTK Importer', 'DTK Importer', 'read', 'dtk-importer-page', array( $this, 'add_dtk_importer_content' ) );
+
+	}
+
+	/**
+	 * Add content to our dashboard page
+	 *
+	 * @since    1.0.0
+	 */
+	public function add_dtk_importer_content() {
+
+		include plugin_dir . '/admin/partials/dtk-importer-page.php';
+
+	}
+
+	/**
+	 * Main AJAX function for handling importing data chunks
+	 *
+	 * @since    1.0.0
+	 */
+	public function dtk_import_chunk() {
+
+		$data = sanitize_text_field( $_POST['data'] );
+		parse_str( $data, $data_array );
+		$security = $data_array['dtk_importer_security'];
+
+		if ( ! wp_verify_nonce( $security, 'dtk_importer_security' ) ) {
+			die( 'Security Failure' );
+		}
+
+		$option_name  = 'dtk_importer_csv';
+		$option_value = get_option( $option_name );
+
+		$file = new SplFileObject( $option_value );
+		$file->setFlags( SplFileObject::READ_CSV );
+		$file->setFlags( SplFileObject::READ_AHEAD );
+		$file->setFlags( SplFileObject::SKIP_EMPTY );
+		$file->setFlags( SplFileObject::DROP_NEW_LINE );
+
+		$whole_shabang = array();
+
+		$i = -1;
+		while ( ! $file->eof() ) {
+			$array = $file->fgetcsv();
+			if ( ! empty( $array[1] ) ) {
+				$i++;
+				if ( 0 !== $i ) {
+					$whole_shabang[ $i ] = $array;
+				}
+			}
+		}
+
+		$total = $_POST['total'];
+		$size  = $_POST['size'];
+
+		echo '<h2 style="text-align:center">Proccessing chunk <span style="color:green">' . esc_html( $size ) . '</span> of ' . esc_html( $total ) . '</h2>';
+
+		die();
+
+	}
+
+	/**
+	 * Listen for our POST data
+	 *
+	 * @since    1.0.0
+	 */
+	public function dtk_post_listener() {
+
+		if ( isset( $_POST['dtk_importer_csv'] ) ) {
+
+			$option_name = 'dtk_importer_csv';
+			$text_arr    = explode( '.', $_POST['dtk_importer_csv'] );
+
+			if ( 'csv' !== $text_arr[2] ) {
+				update_option( $option_name, '' );
+			} else {
+				update_option( $option_name, $_POST['dtk_importer_csv'] );
+			}
+
+		}
+
+	}
+
 }

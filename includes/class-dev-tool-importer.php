@@ -145,6 +145,9 @@ class Dev_Tool_Importer {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'wp_ajax_dtk_import_chunk', $plugin_admin, 'dtk_import_chunk' );
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'dtk_post_listener' );
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_dtk_importer_page' );
 
 	}
 
