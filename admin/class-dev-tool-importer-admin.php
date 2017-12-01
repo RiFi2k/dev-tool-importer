@@ -60,7 +60,7 @@ class Dev_Tool_Importer_Admin {
 	 */
 	public function enqueue_styles() {
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/dtk-importer-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, DTK_IMPORTER_URL . 'admin/css/dtk-importer-admin.css', array(), $this->version, 'all' );
 
 	}
 
@@ -71,29 +71,85 @@ class Dev_Tool_Importer_Admin {
 	 */
 	public function enqueue_scripts() {
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/dtk-importer-admin.js', array( 'jquery' ), $this->version, false );
+		wp_register_script( $this->plugin_name, DTK_IMPORTER_URL . 'admin/js/dtk-importer-admin.js', array( 'jquery' ), $this->version, false );
 
 	}
 
 	/**
-	 * Add dashboard page for our goodness
+	 * Register the plugins settings.
 	 *
 	 * @since    1.0.0
 	 */
-	public function add_dtk_importer_page() {
+	public function settings_init() {
 
-		add_dashboard_page( 'DTK Importer', 'DTK Importer', 'read', 'dtk-importer-page', array( $this, 'add_dtk_importer_content' ) );
+		add_settings_section(
+			'dtk_importer_setup',
+			'Set CSV Location',
+			array( $this, 'importer_setup_content' ),
+			'dtk-importer-admin'
+		);
+
+		register_setting( 'dtk-importer-admin', 'dtk_importer_csv' );
+
+		add_settings_field(
+			'dtk_importer_csv',
+			__( 'Pill', 'wporg' ),
+			array( $this, 'importer_csv_callback' ),
+			'dtk-importer-admin',
+			'dtk_importer_setup',
+			[
+				'label_for' => 'wporg_field_pill',
+				'class' => 'wporg_row',
+				'wporg_custom_data' => 'custom',
+			]
+		);
 
 	}
 
 	/**
-	 * Add content to our dashboard page
+	 * Callback for importer csv.
 	 *
 	 * @since    1.0.0
 	 */
-	public function add_dtk_importer_content() {
+	public function importer_csv_callback() {
 
-		include plugin_dir . '/admin/partials/dtk-importer-page.php';
+	}
+
+	/**
+	 * Register settings section callback.
+	 *
+	 * @since    1.0.0
+	 */
+	public function importer_setup_content() {
+
+		$setting = get_option( 'dtk_importer_csv' );
+		?>
+		<input type="text" name="dtk_importer_csv" value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>">
+		<?php
+
+	}
+
+	/**
+	 * Add our plugin page to the Tools menu.
+	 *
+	 * @since    1.0.0
+	 */
+	public function importer_page() {
+
+		add_management_page( 'Developers Toolkit Importer', 'DTK Importer', 'manage_options', 'dtk-importer-admin', array( $this, 'importer_content' ) );
+
+	}
+
+	/**
+	 * Add content to our plugin page.
+	 *
+	 * @since    1.0.0
+	 */
+	public function importer_content() {
+settings_fields( 'dtk_importer_csv' );
+do_settings_sections( 'dtk-importer-admin' );
+submit_button( 'Save Settings' );
+		//include DTK_IMPORTER_PATH . 'admin/partials/dtk-importer-page.php';
 
 	}
 
@@ -102,15 +158,13 @@ class Dev_Tool_Importer_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function dtk_import_chunk() {
+	public function import_chunk() {
 
 		$data = sanitize_text_field( $_POST['data'] );
 		parse_str( $data, $data_array );
 		$security = $data_array['dtk_importer_security'];
 
-		if ( ! wp_verify_nonce( $security, 'dtk_importer_security' ) ) {
-			die( 'Security Failure' );
-		}
+
 
 		$option_name  = 'dtk_importer_csv';
 		$option_value = get_option( $option_name );
@@ -148,19 +202,15 @@ class Dev_Tool_Importer_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function dtk_post_listener() {
+	public function post_listener() {
 
 		if ( isset( $_POST['dtk_importer_csv'] ) ) {
 
+			$url         = $_POST['dtk_importer_csv'];
 			$option_name = 'dtk_importer_csv';
-			$text_arr    = explode( '.', $_POST['dtk_importer_csv'] );
 
-			if ( 'csv' !== $text_arr[2] ) {
-				update_option( $option_name, '' );
-			} else {
-				update_option( $option_name, $_POST['dtk_importer_csv'] );
-			}
 
+			update_option( $option_name, $url );
 		}
 
 	}

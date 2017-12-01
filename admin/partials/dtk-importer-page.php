@@ -11,13 +11,7 @@
  * @subpackage Dev_Tool_Importer/admin/partials
  */
 
-$option_name = 'dtk_importer_csv';
-if ( get_option( $option_name ) === false ) {
-	update_option( $option_name, '' );
-} else {
-	$option_value = get_option( $option_name );
-}
-
+$option_value = get_option( 'dtk_importer_csv' );
 ?>
 
 <div id="dtk-import" class="wrap">
@@ -25,7 +19,7 @@ if ( get_option( $option_name ) === false ) {
 
 	<?php
 	// if no URL set.
-	if ( get_option( $option_name ) === '' ) {
+	if ( get_option( 'dtk_importer_csv' ) === '' ) {
 	?>
 
 		<form method="post">
@@ -34,11 +28,11 @@ if ( get_option( $option_name ) === false ) {
 				<tbody>
 					<tr>
 					<th><label for="dtk_importer_csv">Add CSV URL</label></th>
-					<td><input name="dtk_importer_csv" type="url" id="dtk_importer_csv" value="<?php echo esc_url( $option_value ); ?>" style="width:80%"></td>
+					<td><input name="dtk_importer_csv" type="text" value="<?php echo esc_url( $option_value ); ?>" style="width:80%"></td>
 					</tr>
 					<tr>
 					<th></th>
-					<td><input type="submit" name="submit" id="submit" class="button button-primary" value="Add CSV URL"></td>
+					<td><input type="submit" name="submit" class="button button-primary" value="Add CSV URL"></td>
 					</tr>
 				</tbody>
 			</table>
@@ -55,7 +49,7 @@ if ( get_option( $option_name ) === false ) {
 				<tbody>
 					<tr>
 					<th><label for="dtk_importer_csv">Change CSV URL</label></th>
-					<td><input name="dtk_importer_csv" type="url" id="dtk_importer_csv" value="<?php echo esc_url( $option_value ); ?>" style="width:80%"></td>
+					<td><input name="dtk_importer_csv" type="text" id="dtk_importer_csv" value="<?php echo esc_url( $option_value ); ?>" style="width:80%"></td>
 					</tr>
 					<tr>
 					<th></th>
@@ -180,48 +174,5 @@ if ( get_option( $option_name ) === false ) {
 
 <script>
 jQuery(document).ready(function($){
-
-	$('#dtk-importer-start').submit(function(e) {
-		e.preventDefault();
-		var str = $(this).serialize();
-		var div = $('#dtk-import-reload');
-		var error = '<span class="ajax-error">Sorry, you broke it</span>';
-		var total = <?php echo $total_chunks; ?>;
-		var size = <?php echo $total_chunks; ?>;
-		function processChunk() {
-
-			if (size <= 0) {
-				return;
-			}
-
-			$.ajax({
-				url: ajaxurl,
-				method: 'POST',
-				data: {
-					action: 'dtk_import_chunk',
-					total: total,
-					size: size,
-					data: str
-				},
-				beforeSend: function() {
-					$('#dtk-import').addClass('dtk-loading');
-				},
-				error: function() {
-					div.html(error);
-				},
-				success: function(data) {
-					div.html(data);
-				},
-				complete: function() {
-					$('#dtk-import').removeClass('dtk-loading');
-					size--;
-					processChunk();
-				}
-			});
-
-		}
-		processChunk();
-	});
-
 });
 </script>

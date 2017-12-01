@@ -35,6 +35,12 @@ if ( ! defined( 'WPINC' ) ) {
 define( 'DTK_IMPORTER_VERSION', '1.0.0' );
 
 /**
+ * Plugin paths
+ */
+define( 'DTK_IMPORTER_PATH', plugin_dir_path( __FILE__ ) );
+define( 'DTK_IMPORTER_URL', plugin_dir_url( __FILE__ ) );
+
+/**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-dev-tool-importer-activator.php
  */
